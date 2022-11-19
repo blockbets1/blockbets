@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Double, quadruple, or octuple your Ether with Block Bets</title>
+        <style type="text/css">
+            body {
+                background: black;
+                color: white;
+                font-family: 'Courier New', Courier, monospace;
+                font-size: 16px;
+                font-weight: bold;
+                margin: 0;
+                max-width: 500px;
+                word-wrap: break-word;
+            }
+            h1, h2, p {
+                margin: 0;
+                padding: 20px;
+            }
+            h1 {
+                font-size: 24px;
+            }
+            h2 {
+                font-size: 20px;
+            }
+            p {
+                font-size: 16px;
+            }
+            ul {
+                display: flex;
+                flex-flow: row wrap;
+                margin: 0;
+                padding: 0;
+            }
+            li {
+                display: flex;
+                justify-content: center;
+                position: relative;
+                width: 50%;
+            }
+            button {
+								background: green;
+                border: 1px solid black;
+                border-radius: 0;
+                color: white;
+								cursor: pointer;
+                font-size: 20px;
+                line-height: 80px;
+                outline: none;
+                width: 100%;
+            }
+            button + button {
+                border-top: 0;
+            }
+            [data-bet="0,1"],
+            [data-bet="4,5"],
+            [data-bet="8,9"],
+            [data-bet="C,D"] {
+                border-top: 1px solid black;
+            }
+            button:hover {
+                background: forestgreen;
+            }
+            button:focus {
+                background: forestgreen;
+            }
+            [data-bet*=","] {
+                line-height: 40px;
+                position: absolute;
+                left: -25%;
+                width: 50%;
+            }
+            [data-bet="0,1"],
+            [data-bet="2,3"],
+            [data-bet="4,5"],
+            [data-bet="6,7"],
+            [data-bet="8,9"],
+            [data-bet="A,B"],
+            [data-bet="C,D"],
+            [data-bet="E,F"] {
+                top: 20px;
+            }
+            [data-bet="0,1,2,3"],
+            [data-bet="4,5,6,7"],
+            [data-bet="8,9,A,B"],
+            [data-bet="C,D,E,F"] {
+                top: -20px;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>Block Bets</h1>
+        <p>
+            Every block in the Ethereum blockchain has a hash made up of 64 hexidecimal character (0-9, A-F).
+            If you can guess the last character of a future block hash, you can win 2, 4, or 8 times your wager. 
+        </p>
+        <p>
+            Pick a character or set of characters for directions on how to place your bet. 
+        </p>
+        <ul id="bets">
+            <li><button data-bet="0">0</button></li>
+            <li>
+                <button data-bet="1">1</button>
+                <button data-bet="0,1">0,1</button>
+            </li>
+            <li><button data-bet="2">2</button></li>
+            <li>
+                <button data-bet="3">3</button>
+                <button data-bet="2,3">2,3</button>
+                <button data-bet="0,1,2,3">0-3</button>
+            </li>
+            <li><button data-bet="4">4</button></li>
+            <li>
+                <button data-bet="5">5</button>
+                <button data-bet="4,5">4,5</button>
+            </li>
+            <li><button data-bet="6">6</button></li>
+            <li>
+                <button data-bet="7">7</button>
+                <button data-bet="6,7">6,7</button>
+                <button data-bet="4,5,6,7">4-7</button>
+            </li>
+            <li><button data-bet="8">8</button></li>
+            <li>
+                <button data-bet="9">9</button>
+                <button data-bet="8,9">8,9</button>
+            </li>
+            <li><button data-bet="A">A</button></li>
+            <li>
+                <button data-bet="B">B</button>
+                <button data-bet="A,B">A,B</button>
+                <button data-bet="8,9,A,B">8,9,A,B</button>
+            </li>
+            <li><button data-bet="C">C</button></li>
+            <li>
+                <button data-bet="D">D</button>
+                <button data-bet="C,D">C,D</button>
+            </li>
+            <li><button data-bet="E">E</button></li>
+            <li>
+                <button data-bet="F">F</button>
+                <button data-bet="E,F">E,F</button>
+                <button data-bet="C,D,E,F">C-F</button>
+            </li>
+        </ul>
+				<div id="directions"></div>
+        <script>
+            const valueMap = {
+                "0": "001",
+                "1": "011",
+                "2": "021",
+                "3": "031",
+                "4": "041",
+                "5": "051",
+                "6": "061",
+                "7": "071",
+                "8": "081",
+                "9": "091",
+                "A": "101",
+                "B": "111",
+                "C": "121",
+                "D": "131",
+                "E": "141",
+                "F": "151",
+                "0,1": "012",
+                "2,3": "032",
+                "4,5": "052",
+                "6,7": "072",
+                "8,9": "092",
+                "A,B": "112",
+                "C,D": "132",
+                "E,F": "152",
+                "0,1,2,3": "034",
+                "4,5,6,7": "074",
+                "8,9,A,B": "114",
+                "C,D,E,F": "154",
+            };
+            const toAddress = "0x777bcc343eb3f2b70f2c2a999795800c397d5777";
+
+            document.getElementById("bets").addEventListener("click", function(event) {
+                const characterString = event.target.dataset.bet;
+                const characters = characterString.split(",");
+                const numberOfCharacters = characters.length;
+                if (numberOfCharacters > 1) characters[characters.length - 1] = "or " + characters[characters.length - 1];
+                const characterSeparator = numberOfCharacters > 2 ? ", ": " ";
+                const winningsMultiplier = ((16 / numberOfCharacters)) / 2;
+                const directions = `
+                    <h2>
+                        Betting on ${characters.join(characterSeparator)}
+                    </h2>
+                    <p>
+                        Send any amount of Ether ending in ${valueMap[characterString]} (e.g. 1.0020${valueMap[characterString]}) to ${toAddress}. 
+                        If the hash of the block after the block your transaction is in ends with ${characters.join(characterSeparator)}, you win, 
+                        and you will be sent ${winningsMultiplier} times the amount of Ether you send on a first-in, first-out basis as the pot grows from losing wagers. 
+                    </p>
+                    <p>
+                        If the block hash does not end with ${characters.join(characterSeparator)}, you lose, 
+                        and the Ether you send will be used to pay for winning wagers. 
+                    </p>
+                `;
+                document.getElementById("directions").innerHTML = directions;
+                document.getElementById("directions").scrollIntoView();
+            });
+        </script>
+    </body>
+</html>
